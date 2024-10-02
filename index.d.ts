@@ -1,4 +1,4 @@
-declare module "react-native-sms" {
+declare module "@sebivps/react-native-sms" {
   export enum AndroidSuccessTypes {
     all = "all",
     inbox = "inbox",

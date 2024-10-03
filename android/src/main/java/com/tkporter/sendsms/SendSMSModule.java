@@ -68,23 +68,16 @@ public class SendSMSModule extends ReactContextBaseJavaModule implements Activit
             }
 
             Intent sendIntent;
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                String defaultSmsPackageName = Telephony.Sms.getDefaultSmsPackage(reactContext);
-                if (defaultSmsPackageName != null){
-                    sendIntent = new Intent(Intent.ACTION_SEND);
-                    sendIntent.setPackage(defaultSmsPackageName);
-                    sendIntent.setType("text/plain");
-                }
-                else {
-                    sendIntent = new Intent(Intent.ACTION_MAIN);
-                    sendIntent.addCategory(Intent.CATEGORY_APP_MESSAGING);
-                }
-            }else {
+            String defaultSmsPackageName = Telephony.Sms.getDefaultSmsPackage(reactContext);
+            if (defaultSmsPackageName != null){
+                sendIntent = new Intent(Intent.ACTION_SEND);
+                sendIntent.setPackage(defaultSmsPackageName);
+            }
+            else {
                 sendIntent = new Intent(Intent.ACTION_VIEW);
-                sendIntent.setType("vnd.android-dir/mms-sms");
             }
 
+            sendIntent.setType("text/plain");
             sendIntent.putExtra("sms_body", body);
             sendIntent.putExtra(sendIntent.EXTRA_TEXT, body);
             sendIntent.putExtra("exit_on_sent", true);
@@ -99,17 +92,25 @@ public class SendSMSModule extends ReactContextBaseJavaModule implements Activit
 
             //if recipients specified
             if (recipients != null) {
-                //Samsung for some reason uses commas and not semicolons as a delimiter
-                String separator = ";";
-                if(android.os.Build.MANUFACTURER.equalsIgnoreCase("Samsung")){
-                    separator = ",";
-                }
                 String recipientString = "";
-                for (int i = 0; i < recipients.size(); i++) {
-                    recipientString += recipients.getString(i);
-                    recipientString += separator;
+
+                if (recipients.size() == 1) {
+                    recipientString = recipients.getString(0);
+                    sendIntent.setData(Uri.parse("smsto:"+ recipientString));
                 }
-                sendIntent.putExtra("address", recipientString);
+                else {
+                    //Samsung for some reason uses commas and not semicolons as a delimiter
+                    String separator = ";";
+                    if(android.os.Build.MANUFACTURER.equalsIgnoreCase("Samsung")){
+                        separator = ",";
+                    }
+
+                    for (int i = 0; i < recipients.size(); i++) {
+                        recipientString += recipients.getString(i);
+                        recipientString += separator;
+                    }
+                    sendIntent.putExtra("address", recipientString);
+                }
             }
 
             reactContext.startActivityForResult(sendIntent, REQUEST_CODE, sendIntent.getExtras());

@@ -57,15 +57,9 @@ public class SendSMSModule extends ReactContextBaseJavaModule implements Activit
     public void send(ReadableMap options, final Callback callback) {
         try {
             this.callback = callback;
-            new SendSMSObserver(reactContext, this, options).start();
 
             String body = options.hasKey("body") ? options.getString("body") : "";
             ReadableArray recipients = options.hasKey("recipients") ? options.getArray("recipients") : null;
-
-            ReadableMap attachment = null;
-            if (options.hasKey("attachment")) {
-                attachment = options.getMap("attachment");
-            }
 
             Intent sendIntent;
             String defaultSmsPackageName = Telephony.Sms.getDefaultSmsPackage(reactContext);
@@ -79,16 +73,6 @@ public class SendSMSModule extends ReactContextBaseJavaModule implements Activit
 
             sendIntent.setType("text/plain");
             sendIntent.putExtra("sms_body", body);
-            sendIntent.putExtra(sendIntent.EXTRA_TEXT, body);
-            sendIntent.putExtra("exit_on_sent", true);
-
-            if (attachment != null) {
-                Uri attachmentUrl = Uri.parse(attachment.getString("url"));
-                sendIntent.putExtra(Intent.EXTRA_STREAM, attachmentUrl);
-
-                String type = attachment.getString("androidType");
-                sendIntent.setType(type);
-            }
 
             //if recipients specified
             if (recipients != null) {
@@ -113,7 +97,7 @@ public class SendSMSModule extends ReactContextBaseJavaModule implements Activit
                 }
             }
 
-            reactContext.startActivityForResult(sendIntent, REQUEST_CODE, sendIntent.getExtras());
+            reactContext.startActivity(sendIntent);
         } catch (Exception e) {
             //error!
             sendCallback(false, false, true);

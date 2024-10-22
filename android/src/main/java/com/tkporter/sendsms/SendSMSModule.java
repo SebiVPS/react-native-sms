@@ -97,7 +97,7 @@ public class SendSMSModule extends ReactContextBaseJavaModule implements Activit
                 }
             }
 
-            reactContext.startActivity(sendIntent);
+            reactContext.startActivityForResult(sendIntent, REQUEST_CODE, sendIntent.getExtras());
         } catch (Exception e) {
             //error!
             sendCallback(false, false, true);
